@@ -4,6 +4,8 @@ from selenium.common.exceptions import NoSuchElementException
 from datetime import date, timedelta
 import os
 from time import sleep
+import pandas as pd
+import numpy as np
 
 
 def date_to_str(dt):
@@ -44,6 +46,7 @@ excel_file = driver.find_element_by_xpath('/html/body/div/div[2]/div/div/div/a')
 sleep(2)
 driver.quit()
 
-
+dollar_df = pd.read_html('CotizacionesBCRA.xls')
+print()
 
 
