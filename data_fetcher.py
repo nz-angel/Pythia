@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import Select
 import csv
 
 
-def collect_data(xpath, driver, collection):
+def collect_row_data(xpath, driver, collection):
     """
     It inspects the table with the currency exchange found at the webpage and collects all the relevant information
     from a table row: date, value, currency fluctuation with regards to the previous day, weekday and if the day occurs
@@ -59,11 +59,9 @@ c_options.add_argument('headless')
 driver = webdriver.Chrome(chrome_options=c_options)
 driver.get('https://www.bcra.gob.ar/PublicacionesEstadisticas/Evolucion_moneda.asp')
 
-years_back = 1
+years_back = 0.5
 today = date.today()
 initial_date = today - timedelta(days=365*years_back+1)
-
-# initial_date = '2019.03.17'
 
 date_select = Select(driver.find_element_by_name('Fecha'))
 while True:
@@ -86,7 +84,7 @@ i = 2
 while True:
     try:
         xp = '/html/body/div/div[2]/div/div/div/table/tbody/tr[{}]'.format(i)
-        data.append(collect_data(xp, driver, data))
+        data.append(collect_row_data(xp, driver, data))
         i += 1
         print(data[-1])
     except NoSuchElementException:
