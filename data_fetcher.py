@@ -8,11 +8,13 @@ import os
 import csv
 
 
-def collect_row_data(xpath, driver, collection):
+def collect_row_data(xpath, driver, collection, speech_dates):
     """
     It inspects the table with the currency exchange found at the webpage and collects all the relevant information
     from a table row: date, value, currency fluctuation with regards to the previous day, weekday and if the day occurs
     after a holiday. All these data are stored in a dictionary.
+    :param speech_dates: set of presidential speeches dates
+    :type speech_dates: set
     :param xpath: xpath to the row of the data table
     :type xpath: str
     :param driver: Chrome driver
@@ -43,6 +45,8 @@ def collect_row_data(xpath, driver, collection):
     if (day_data['weekday'] and prev_day_date != date_ - timedelta(days=1)) or \
             (not day_data['weekday'] and prev_day_date != date_ - timedelta(days=3)):
         day_data['after holiday'] = 1
+    day_data['after speech'] = 1*(date_ - timedelta(days=1) in speech_dates)
+    day_data['speech'] = 1*(date_ in speech_dates)
 
     return day_data
 
@@ -55,10 +59,12 @@ def build_csv(collection):
     """
     with open('data.csv', 'w+', newline="") as f:
         file_writer = csv.writer(f, dialect='excel', delimiter=';')
-        file_writer.writerow(['Day', 'Month', 'Year', 'Value', 'Delta', 'Increase', 'Weekday', 'After Holiday'])
+        file_writer.writerow(['Day', 'Month', 'Year', 'Value', 'Delta', 'Increase', 'Weekday', 'After Holiday',
+                              'Day of Speech', 'After Speech'])
         for elem in collection:
             file_writer.writerow([elem['day'], elem['month'], elem['year'], elem['value'], elem['delta'],
-                                  elem['increase'], elem['weekday'], elem['after holiday']])
+                                  elem['increase'], elem['weekday'], elem['after holiday'], elem['after speech'],
+                                  elem['speech']])
 
 
 def update_data(end_date, path_to_csv):
@@ -112,6 +118,8 @@ def parse_table(initial_date, end_date):
     :return: list of dictionaries that represent the data obtained from each one of the table's rows
     :rtype: list
     """
+    speech_dates = get_speech_dates()
+
     c_options = webdriver.ChromeOptions()
     c_options.add_argument('headless')
     driver = webdriver.Chrome(chrome_options=c_options)
@@ -137,7 +145,7 @@ def parse_table(initial_date, end_date):
     while True:
         try:
             xp = '/html/body/div/div[2]/div/div/div/table/tbody/tr[{}]'.format(i)
-            data.append(collect_row_data(xp, driver, data))
+            data.append(collect_row_data(xp, driver, data, speech_dates))
             # print(data[-1])
         except NoSuchElementException:
             break
@@ -149,6 +157,46 @@ def parse_table(initial_date, end_date):
                 break
     driver.quit()
     return data
+
+
+def get_speech_dates():
+    """
+    Generates a set of dates of the presidental speeches, obtained from the official data provided by the Pink House
+    website.
+    :return: set of presidential speeches dates
+    :rtype: set
+    """
+    months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre',
+              'Noviembre', 'Diciembre']
+    month_dict = {month: number for month, number in zip(months, range(1, 13))}
+    speech_dates = set([])
+    c_options = webdriver.ChromeOptions()
+    c_options.add_argument('headless')
+    driver = webdriver.Chrome(chrome_options=c_options)
+    driver.get('https://www.casarosada.gob.ar/informacion/discursos')
+    while True:
+        i = 1
+        while True:
+            try:
+                xpath = '//*[@id="jm-maincontent"]/main/div/section/div/div/div[2]/div[{}]/div/a/div/time'.format(i)
+                str_date = driver.find_element_by_xpath(xpath).text
+            except NoSuchElementException:
+                break
+            else:
+                str_date = str_date.split()
+                date_ = date(int(str_date[5]), month_dict[str_date[3]], int(str_date[1]))
+                speech_dates.add(date_)
+                i += 1
+
+        try:
+            next_button = driver.find_element_by_xpath(
+                '//*[@id="jm-maincontent"]/main/div/section/div/div/div[3]/ul/li[13]/a')
+        except NoSuchElementException:
+            break
+        else:
+            next_button.click()
+    driver.quit()
+    return speech_dates
 
 
 def main(years_back=None, initial_date=None, end_date=None, update=False, path_to_csv=''):
@@ -182,7 +230,7 @@ def main(years_back=None, initial_date=None, end_date=None, update=False, path_t
 
 
 if __name__ == '__main__':
-    main(years_back=6)
+    main()
 
     
 
