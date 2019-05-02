@@ -230,7 +230,7 @@ def main(years_back=None, initial_date=None, end_date=None, update=False, path_t
 
 
 if __name__ == '__main__':
-    main()
+    main(update=True)
 
     
 
