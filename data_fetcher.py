@@ -101,7 +101,8 @@ def update_data(end_date, path_to_csv):
             file_writer = csv.writer(f, dialect='excel', delimiter=';')
             for elem in new_data:
                 file_writer.writerow([elem['day'], elem['month'], elem['year'], elem['value'], elem['delta'],
-                                      elem['increase'], elem['weekday'], elem['after holiday']])
+                                      elem['increase'], elem['weekday'], elem['after holiday'], elem['after speech'],
+                                      elem['speech']])
 
 
 def parse_table(initial_date, end_date):
