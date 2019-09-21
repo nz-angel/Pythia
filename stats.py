@@ -102,6 +102,8 @@ def benchmark_pattern_prediction(values, init_days=30, pattern_lens=tuple(range(
     list_data = [data.loc[:, c] for c in pattern_lens]
     print(error_ratio)
     sns.lineplot(data=list_data)
+    plt.ylabel('Error')
+    plt.xlabel('Number of data')
     plt.show()
     pass
 
@@ -109,16 +111,18 @@ def benchmark_pattern_prediction(values, init_days=30, pattern_lens=tuple(range(
 def plot_descritive_charts():
     # Dollar evolution
     df = pd.read_csv('data.csv', sep=';')
-    plot_('lineplot', df, y_col='Value')
+    plot_('lineplot', df, y_col='Value', plot_title="Evolution of Dollar's value")
 
     # Dollar increase by weekday
-    plot_('barplot', df, x_col='Weekday', y_col='Increase', x_ticks_label=DAYS, capsize=0.2, ticks=1, palette='Paired')
+    plot_('barplot', df, x_col='Weekday', y_col='Increase', x_ticks_label=DAYS, capsize=0.2, ticks=1,
+          palette='Paired', plot_title='Dollar increase by weekday')
 
     # Dollar value fluctuation pby weekday
-    plot_('boxplot', df, x_col='Weekday', y_col='Delta', x_label=DAYS)
+    plot_('boxplot', df, x_col='Weekday', y_col='Delta', x_ticks_label=DAYS,
+          plot_title='Dollar value fluctuation pby weekday')
 
     # Dollar increse by day
-    plot_('barplot', df, x_col='Day', y_col='Increase', errwidth=0)
+    plot_('barplot', df, x_col='Day', y_col='Increase', errwidth=0, plot_title='Dollar increse by day of the month')
 
     plot_('boxplot', df, 'Day', 'Delta')
 
@@ -140,3 +144,4 @@ predict_from_pattern(vals, 2, silent=False)
 predict_from_pattern(vals, 3, silent=False)
 predict_from_pattern(vals, 4, silent=False)
 # benchmark_pattern_prediction(vals)
+# plot_descritive_charts()
